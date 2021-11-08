@@ -1,5 +1,10 @@
 package inspect
 
+import (
+	"encoding"
+	"encoding/gob"
+)
+
 type Reader interface {
 	SetBuffer(buffer []byte)
 	Buffer() []byte
@@ -9,6 +14,7 @@ type Reader interface {
 	Float64() (float64, error)
 	String() (string, error)
 	Bytes() ([]byte, error)
+	ByteString() ([]byte, error)
 	StartObject() error
 	Property(name string) error
 	EndObject() error
@@ -28,6 +34,7 @@ type Writer interface {
 	Float64(value float64) error
 	String(value string) error
 	Bytes(value []byte) error
+	ByteString(value []byte) error
 	StartObject() error
 	Property(name string) error
 	EndObject() error
@@ -36,6 +43,13 @@ type Writer interface {
 	StartMap(length int) error
 	NextKey(key string) error
 	EndMap() error
+}
+
+type RawValue interface {
+	encoding.TextMarshaler
+	gob.GobEncoder
+	encoding.TextUnmarshaler
+	gob.GobDecoder
 }
 
 type InspectorInterface interface {
@@ -49,6 +63,8 @@ type InspectorInterface interface {
 	Float64(value *float64)
 	String(value *string)
 	Bytes(value *[]byte)
+	ByteString(value *[]byte)
+	Value(value RawValue)
 	StartObject(name string, description string)
 	Property(name string, mandatory bool, description string) bool
 	PropertyInt32(name string, value *int32, mandatory bool, description string)
@@ -58,6 +74,8 @@ type InspectorInterface interface {
 	PropertyFloat64(name string, value *float64, mandatory bool, description string)
 	PropertyString(name string, value *string, mandatory bool, description string)
 	PropertyBytes(name string, value *[]byte, mandatory bool, description string)
+	PropertyByteString(name string, value *[]byte, mandatory bool, description string)
+	PropertyValue(name string, value RawValue, mandatory bool, description string)
 	EndObject()
 	ReadArray(name string, elementName string, description string) int
 	WriteArray(name string, elementName string, length int, description string)

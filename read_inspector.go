@@ -2,25 +2,25 @@ package inspect
 
 import "strconv"
 
-type readInspector[R Reader] struct {
+type ReadInspector[R Reader] struct {
 	reader    R
 	lastError error
 }
 
-func (r *readInspector[R]) LastError() error {
+func (r *ReadInspector[R]) LastError() error {
 	return r.lastError
 }
 
-func (r *readInspector[R]) SetBuffer(buffer []byte) {
+func (r *ReadInspector[R]) SetBuffer(buffer []byte) {
 	r.reader.SetBuffer(buffer)
 	r.lastError = nil
 }
 
-func (r *readInspector[R]) Buffer() []byte {
+func (r *ReadInspector[R]) Buffer() []byte {
 	return r.reader.Buffer()
 }
 
-func (r *readInspector[R]) Int32(value *int32) {
+func (r *ReadInspector[R]) Int32(value *int32) {
 	if r.lastError != nil {
 		return
 	}
@@ -31,7 +31,7 @@ func (r *readInspector[R]) Int32(value *int32) {
 	}
 }
 
-func (r *readInspector[R]) Int64(value *int64) {
+func (r *ReadInspector[R]) Int64(value *int64) {
 	if r.lastError != nil {
 		return
 	}
@@ -42,7 +42,7 @@ func (r *readInspector[R]) Int64(value *int64) {
 	}
 }
 
-func (r *readInspector[R]) Int(value *int) {
+func (r *ReadInspector[R]) Int(value *int) {
 	if r.lastError != nil {
 		return
 	}
@@ -61,7 +61,7 @@ func (r *readInspector[R]) Int(value *int) {
 	}
 }
 
-func (r *readInspector[R]) Float32(value *float32) {
+func (r *ReadInspector[R]) Float32(value *float32) {
 	if r.lastError != nil {
 		return
 	}
@@ -72,7 +72,7 @@ func (r *readInspector[R]) Float32(value *float32) {
 	}
 }
 
-func (r *readInspector[R]) Float64(value *float64) {
+func (r *ReadInspector[R]) Float64(value *float64) {
 	if r.lastError != nil {
 		return
 	}
@@ -83,7 +83,7 @@ func (r *readInspector[R]) Float64(value *float64) {
 	}
 }
 
-func (r *readInspector[R]) String(value *string) {
+func (r *ReadInspector[R]) String(value *string) {
 	if r.lastError != nil {
 		return
 	}
@@ -94,7 +94,7 @@ func (r *readInspector[R]) String(value *string) {
 	}
 }
 
-func (r *readInspector[R]) Bytes(value *[]byte) {
+func (r *ReadInspector[R]) Bytes(value *[]byte) {
 	if r.lastError != nil {
 		return
 	}
@@ -105,14 +105,25 @@ func (r *readInspector[R]) Bytes(value *[]byte) {
 	}
 }
 
-func (r *readInspector[R]) StartObject(name string, description string) {
+func (r *ReadInspector[R]) ByteString(value *[]byte) {
+	if r.lastError != nil {
+		return
+	}
+	var result []byte
+	result, r.lastError = r.reader.ByteString()
+	if r.lastError == nil {
+		*value = result
+	}
+}
+
+func (r *ReadInspector[R]) StartObject(name string, description string) {
 	if r.lastError != nil {
 		return
 	}
 	r.lastError = r.reader.StartObject()
 }
 
-func (r *readInspector[R]) Property(name string, mandatory bool, description string) bool {
+func (r *ReadInspector[R]) Property(name string, mandatory bool, description string) bool {
 	if r.lastError != nil {
 		return false
 	}
@@ -125,7 +136,7 @@ func (r *readInspector[R]) Property(name string, mandatory bool, description str
 	return false
 }
 
-func (r *readInspector[R]) PropertyInt32(name string, value *int32, mandatory bool, description string) {
+func (r *ReadInspector[R]) PropertyInt32(name string, value *int32, mandatory bool, description string) {
 	if r.lastError != nil {
 		return
 	}
@@ -143,7 +154,7 @@ func (r *readInspector[R]) PropertyInt32(name string, value *int32, mandatory bo
 	}
 }
 
-func (r *readInspector[R]) PropertyInt64(name string, value *int64, mandatory bool, description string) {
+func (r *ReadInspector[R]) PropertyInt64(name string, value *int64, mandatory bool, description string) {
 	if r.lastError != nil {
 		return
 	}
@@ -161,7 +172,7 @@ func (r *readInspector[R]) PropertyInt64(name string, value *int64, mandatory bo
 	}
 }
 
-func (r *readInspector[R]) PropertyInt(name string, value *int, mandatory bool, description string) {
+func (r *ReadInspector[R]) PropertyInt(name string, value *int, mandatory bool, description string) {
 	if r.lastError != nil {
 		return
 	}
@@ -187,7 +198,7 @@ func (r *readInspector[R]) PropertyInt(name string, value *int, mandatory bool, 
 	}
 }
 
-func (r *readInspector[R]) PropertyFloat32(name string, value *float32, mandatory bool, description string) {
+func (r *ReadInspector[R]) PropertyFloat32(name string, value *float32, mandatory bool, description string) {
 	if r.lastError != nil {
 		return
 	}
@@ -205,7 +216,7 @@ func (r *readInspector[R]) PropertyFloat32(name string, value *float32, mandator
 	}
 }
 
-func (r *readInspector[R]) PropertyFloat64(name string, value *float64, mandatory bool, description string) {
+func (r *ReadInspector[R]) PropertyFloat64(name string, value *float64, mandatory bool, description string) {
 	if r.lastError != nil {
 		return
 	}
@@ -223,7 +234,7 @@ func (r *readInspector[R]) PropertyFloat64(name string, value *float64, mandator
 	}
 }
 
-func (r *readInspector[R]) PropertyString(name string, value *string, mandatory bool, description string) {
+func (r *ReadInspector[R]) PropertyString(name string, value *string, mandatory bool, description string) {
 	if r.lastError != nil {
 		return
 	}
@@ -241,7 +252,7 @@ func (r *readInspector[R]) PropertyString(name string, value *string, mandatory 
 	}
 }
 
-func (r *readInspector[R]) PropertyBytes(name string, value *[]byte, mandatory bool, description string) {
+func (r *ReadInspector[R]) PropertyBytes(name string, value *[]byte, mandatory bool, description string) {
 	if r.lastError != nil {
 		return
 	}
@@ -259,14 +270,32 @@ func (r *readInspector[R]) PropertyBytes(name string, value *[]byte, mandatory b
 	}
 }
 
-func (r *readInspector[R]) EndObject() {
+func (r *ReadInspector[R]) PropertyByteString(name string, value *[]byte, mandatory bool, description string) {
+	if r.lastError != nil {
+		return
+	}
+	err := r.reader.Property(name)
+	if err != nil {
+		if mandatory || err != ErrNoField {
+			r.lastError = err
+		}
+		return
+	}
+	var result []byte
+	result, r.lastError = r.reader.ByteString()
+	if r.lastError != nil {
+		*value = result
+	}
+}
+
+func (r *ReadInspector[R]) EndObject() {
 	if r.lastError != nil {
 		return
 	}
 	r.lastError = r.reader.EndObject()
 }
 
-func (r *readInspector[R]) ReadArray(name string, elementName string, description string) int {
+func (r *ReadInspector[R]) ReadArray(name string, elementName string, description string) int {
 	if r.lastError != nil {
 		return 0
 	}
@@ -278,19 +307,19 @@ func (r *readInspector[R]) ReadArray(name string, elementName string, descriptio
 	return result
 }
 
-func (r *readInspector[R]) WriteArray(name string, elementName string, length int, description string) {
+func (r *ReadInspector[R]) WriteArray(name string, elementName string, length int, description string) {
 	if r.lastError == nil {
 		r.lastError = ErrReaderCantWrite
 	}
 }
 
-func (r *readInspector[R]) EndArray() {
+func (r *ReadInspector[R]) EndArray() {
 	if r.lastError == nil {
 		r.lastError = r.reader.EndArray()
 	}
 }
 
-func (r *readInspector[R]) ReadMap(name string, elementName string, description string) int {
+func (r *ReadInspector[R]) ReadMap(name string, elementName string, description string) int {
 	if r.lastError != nil {
 		return 0
 	}
@@ -302,13 +331,13 @@ func (r *readInspector[R]) ReadMap(name string, elementName string, description 
 	return result
 }
 
-func (r *readInspector[R]) WriteMap(name string, elementName string, length int, description string) {
+func (r *ReadInspector[R]) WriteMap(name string, elementName string, length int, description string) {
 	if r.lastError == nil {
 		r.lastError = ErrReaderCantWrite
 	}
 }
 
-func (r *readInspector[R]) ReadNextKey() string {
+func (r *ReadInspector[R]) ReadNextKey() string {
 	if r.lastError != nil {
 		return ""
 	}
@@ -320,18 +349,84 @@ func (r *readInspector[R]) ReadNextKey() string {
 	return key
 }
 
-func (r *readInspector[R]) WriteNextKey(key string) {
+func (r *ReadInspector[R]) WriteNextKey(key string) {
 	if r.lastError == nil {
 		r.lastError = ErrReaderCantWrite
 	}
 }
 
-func (r *readInspector[R]) EndMap() {
+func (r *ReadInspector[R]) EndMap() {
 	if r.lastError == nil {
 		r.lastError = r.reader.EndMap()
 	}
 }
 
-func (r *readInspector[R]) IsReading() bool {
+func (r *ReadInspector[R]) IsReading() bool {
 	return true
+}
+
+type TextReadInspector[R Reader] struct {
+	ReadInspector[R]
+}
+
+func (r *TextReadInspector[R]) Value(value RawValue) {
+	if r.lastError != nil {
+		return
+	}
+	var data []byte
+	data, r.lastError = r.reader.ByteString()
+	if r.lastError == nil {
+		r.lastError = value.UnmarshalText(data)
+	}
+}
+
+func (r *TextReadInspector[R]) PropertyValue(name string, value RawValue, mandatory bool, description string) {
+	if r.lastError != nil {
+		return
+	}
+	err := r.reader.Property(name)
+	if err != nil {
+		if mandatory || err != ErrNoField {
+			r.lastError = err
+		}
+		return
+	}
+	var data []byte
+	data, r.lastError = r.reader.ByteString()
+	if r.lastError != nil {
+		r.lastError = value.UnmarshalText(data)
+	}
+}
+
+type BinaryReadInspector[R Reader] struct {
+	ReadInspector[R]
+}
+
+func (r *BinaryReadInspector[R]) Value(value RawValue) {
+	if r.lastError != nil {
+		return
+	}
+	var data []byte
+	data, r.lastError = r.reader.Bytes()
+	if r.lastError == nil {
+		r.lastError = value.GobDecode(data)
+	}
+}
+
+func (r *BinaryReadInspector[R]) PropertyValue(name string, value RawValue, mandatory bool, description string) {
+	if r.lastError != nil {
+		return
+	}
+	err := r.reader.Property(name)
+	if err != nil {
+		if mandatory || err != ErrNoField {
+			r.lastError = err
+		}
+		return
+	}
+	var data []byte
+	data, r.lastError = r.reader.Bytes()
+	if r.lastError != nil {
+		r.lastError = value.GobDecode(data)
+	}
 }

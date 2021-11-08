@@ -2,32 +2,32 @@ package inspect
 
 import "strconv"
 
-type writeInspector[R Writer] struct {
-	writer    R
+type WriteInspector[W Writer] struct {
+	writer    W
 	lastError error
 }
 
-func (w *writeInspector[R]) LastError() error {
+func (w *WriteInspector[W]) LastError() error {
 	return w.lastError
 }
-func (w *writeInspector[R]) SetBuffer(buffer []byte) {
+func (w *WriteInspector[W]) SetBuffer(buffer []byte) {
 	w.writer.SetBuffer(buffer)
 	w.lastError = nil
 }
-func (w *writeInspector[R]) Buffer() []byte {
+func (w *WriteInspector[W]) Buffer() []byte {
 	return w.writer.Buffer()
 }
-func (w *writeInspector[R]) Int32(value *int32) {
+func (w *WriteInspector[W]) Int32(value *int32) {
 	if w.lastError == nil {
 		w.lastError = w.writer.Int32(*value)
 	}
 }
-func (w *writeInspector[R]) Int64(value *int64) {
+func (w *WriteInspector[W]) Int64(value *int64) {
 	if w.lastError == nil {
 		w.lastError = w.writer.Int64(*value)
 	}
 }
-func (w *writeInspector[R]) Int(value *int) {
+func (w *WriteInspector[W]) Int(value *int) {
 	if w.lastError != nil {
 		return
 	}
@@ -37,135 +37,207 @@ func (w *writeInspector[R]) Int(value *int) {
 		w.lastError = w.writer.Int32(int32(*value))
 	}
 }
-func (w *writeInspector[R]) Float32(value *float32) {
+func (w *WriteInspector[W]) Float32(value *float32) {
 	if w.lastError == nil {
 		w.lastError = w.writer.Float32(*value)
 	}
 }
-func (w *writeInspector[R]) Float64(value *float64) {
+func (w *WriteInspector[W]) Float64(value *float64) {
 	if w.lastError == nil {
 		w.lastError = w.writer.Float64(*value)
 	}
 }
-func (w *writeInspector[R]) String(value *string) {
+func (w *WriteInspector[W]) String(value *string) {
 	if w.lastError == nil {
 		w.lastError = w.writer.String(*value)
 	}
 }
-func (w *writeInspector[R]) Bytes(value *[]byte) {
+func (w *WriteInspector[W]) Bytes(value *[]byte) {
 	if w.lastError == nil {
 		w.lastError = w.writer.Bytes(*value)
 	}
 }
-func (w *writeInspector[R]) StartObject(name string, description string) {
+func (w *WriteInspector[W]) ByteString(value *[]byte) {
+	if w.lastError == nil {
+		w.lastError = w.writer.ByteString(*value)
+	}
+}
+func (w *WriteInspector[W]) StartObject(name string, description string) {
 	if w.lastError == nil {
 		w.lastError = w.writer.StartObject()
 	}
 }
-func (w *writeInspector[R]) Property(name string, mandatory bool, description string) bool {
+func (w *WriteInspector[W]) Property(name string, mandatory bool, description string) bool {
 	if w.lastError != nil {
 		return false
 	}
 	w.lastError = w.writer.Property(name)
 	return true
 }
-func (w *writeInspector[R]) PropertyInt32(name string, value *int32, mandatory bool, description string) {
+func (w *WriteInspector[W]) PropertyInt32(name string, value *int32, mandatory bool, description string) {
 	if w.lastError != nil {
 		return
 	}
 	w.lastError = w.writer.Property(name)
 	w.Int32(value)
 }
-func (w *writeInspector[R]) PropertyInt64(name string, value *int64, mandatory bool, description string) {
+func (w *WriteInspector[W]) PropertyInt64(name string, value *int64, mandatory bool, description string) {
 	if w.lastError != nil {
 		return
 	}
 	w.lastError = w.writer.Property(name)
 	w.Int64(value)
 }
-func (w *writeInspector[R]) PropertyInt(name string, value *int, mandatory bool, description string) {
+func (w *WriteInspector[W]) PropertyInt(name string, value *int, mandatory bool, description string) {
 	if w.lastError != nil {
 		return
 	}
 	w.lastError = w.writer.Property(name)
 	w.Int(value)
 }
-func (w *writeInspector[R]) PropertyFloat32(name string, value *float32, mandatory bool, description string) {
+func (w *WriteInspector[W]) PropertyFloat32(name string, value *float32, mandatory bool, description string) {
 	if w.lastError != nil {
 		return
 	}
 	w.lastError = w.writer.Property(name)
 	w.Float32(value)
 }
-func (w *writeInspector[R]) PropertyFloat64(name string, value *float64, mandatory bool, description string) {
+func (w *WriteInspector[W]) PropertyFloat64(name string, value *float64, mandatory bool, description string) {
 	if w.lastError != nil {
 		return
 	}
 	w.lastError = w.writer.Property(name)
 	w.Float64(value)
 }
-func (w *writeInspector[R]) PropertyString(name string, value *string, mandatory bool, description string) {
+func (w *WriteInspector[W]) PropertyString(name string, value *string, mandatory bool, description string) {
 	if w.lastError != nil {
 		return
 	}
 	w.lastError = w.writer.Property(name)
 	w.String(value)
 }
-func (w *writeInspector[R]) PropertyBytes(name string, value *[]byte, mandatory bool, description string) {
+func (w *WriteInspector[W]) PropertyBytes(name string, value *[]byte, mandatory bool, description string) {
 	if w.lastError != nil {
 		return
 	}
 	w.lastError = w.writer.Property(name)
 	w.Bytes(value)
 }
-func (w *writeInspector[R]) EndObject() {
+func (w *WriteInspector[W]) PropertyByteString(name string, value *[]byte, mandatory bool, description string) {
+	if w.lastError != nil {
+		return
+	}
+	w.lastError = w.writer.Property(name)
+	w.ByteString(value)
+}
+func (w *WriteInspector[W]) EndObject() {
 	if w.lastError == nil {
 		w.lastError = w.writer.EndObject()
 	}
 }
-func (w *writeInspector[R]) ReadArray(name string, elementName string, description string) int {
+func (w *WriteInspector[W]) ReadArray(name string, elementName string, description string) int {
 	if w.lastError == nil {
 		w.lastError = ErrWriterCantRead
 	}
 	return 0
 }
-func (w *writeInspector[R]) WriteArray(name string, elementName string, length int, description string) {
+func (w *WriteInspector[W]) WriteArray(name string, elementName string, length int, description string) {
 	if w.lastError == nil {
 		w.lastError = w.writer.StartArray(length)
 	}
 }
-func (w *writeInspector[R]) EndArray() {
+func (w *WriteInspector[W]) EndArray() {
 	if w.lastError == nil {
 		w.lastError = w.writer.EndArray()
 	}
 }
-func (w *writeInspector[R]) ReadMap(name string, elementName string) int {
+func (w *WriteInspector[W]) ReadMap(name string, elementName string) int {
 	if w.lastError == nil {
 		w.lastError = ErrWriterCantRead
 	}
 	return 0
 }
-func (w *writeInspector[R]) WriteMap(name string, elementName string, length int, description string) {
+func (w *WriteInspector[W]) WriteMap(name string, elementName string, length int, description string) {
 	if w.lastError == nil {
 		w.lastError = w.writer.StartMap(length)
 	}
 }
-func (w *writeInspector[R]) ReadNextKey() string {
+func (w *WriteInspector[W]) ReadNextKey() string {
 	if w.lastError == nil {
 		w.lastError = ErrWriterCantRead
 	}
 	return ""
 }
-func (w *writeInspector[R]) WriteNextKey(key string) {
+func (w *WriteInspector[W]) WriteNextKey(key string) {
 	if w.lastError == nil {
 		w.lastError = w.writer.NextKey(key)
 	}
 }
-func (w *writeInspector[R]) EndMap() {
+func (w *WriteInspector[W]) EndMap() {
 	if w.lastError == nil {
 		w.lastError = w.writer.EndMap()
 	}
 }
-func (w *writeInspector[R]) IsReading() bool {
+func (w *WriteInspector[W]) IsReading() bool {
 	return false
+}
+
+type TextWriteInspector[W Writer] struct {
+	WriteInspector[W]
+}
+
+func (w *TextWriteInspector[W]) Value(value RawValue) {
+	if w.lastError != nil {
+		return
+	}
+	var data []byte
+	data, w.lastError = value.MarshalText()
+	if w.lastError == nil {
+		w.lastError = w.writer.ByteString(data)
+	}
+}
+
+func (w *TextWriteInspector[W]) PropertyValue(name string, value RawValue, mandatory bool, description string) {
+	if w.lastError != nil {
+		return
+	}
+	w.lastError = w.writer.Property(name)
+	if w.lastError != nil {
+		return
+	}
+	var data []byte
+	data, w.lastError = value.MarshalText()
+	if w.lastError == nil {
+		w.lastError = w.writer.ByteString(data)
+	}
+}
+
+type BinaryWriteInspector[W Writer] struct {
+	WriteInspector[W]
+}
+
+func (w *BinaryWriteInspector[W]) Value(value RawValue) {
+	if w.lastError != nil {
+		return
+	}
+	var data []byte
+	data, w.lastError = value.GobEncode()
+	if w.lastError == nil {
+		w.lastError = w.writer.Bytes(data)
+	}
+}
+
+func (w *BinaryWriteInspector[W]) PropertyValue(name string, value RawValue, mandatory bool, description string) {
+	if w.lastError != nil {
+		return
+	}
+	w.lastError = w.writer.Property(name)
+	if w.lastError != nil {
+		return
+	}
+	var data []byte
+	data, w.lastError = value.GobEncode()
+	if w.lastError == nil {
+		w.lastError = w.writer.Bytes(data)
+	}
 }
