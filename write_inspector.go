@@ -1,6 +1,9 @@
 package inspect
 
-import "strconv"
+import (
+	"io"
+	"strconv"
+)
 
 type WriteInspector[W Writer] struct {
 	writer    W
@@ -10,12 +13,14 @@ type WriteInspector[W Writer] struct {
 func (w *WriteInspector[W]) LastError() error {
 	return w.lastError
 }
-func (w *WriteInspector[W]) SetBuffer(buffer []byte) {
-	w.writer.SetBuffer(buffer)
+func (w *WriteInspector[W]) SetWriter(writer io.Writer, bufferSize int) {
+	w.writer.SetWriter(writer, bufferSize)
 	w.lastError = nil
 }
-func (w *WriteInspector[W]) Buffer() []byte {
-	return w.writer.Buffer()
+func (w *WriteInspector[W]) SetReader(io.Reader) {
+	if w.lastError == nil {
+		w.lastError = ErrWriterCantRead
+	}
 }
 func (w *WriteInspector[W]) Int32(value *int32) {
 	if w.lastError == nil {
@@ -37,14 +42,14 @@ func (w *WriteInspector[W]) Int(value *int) {
 		w.lastError = w.writer.Int32(int32(*value))
 	}
 }
-func (w *WriteInspector[W]) Float32(value *float32) {
+func (w *WriteInspector[W]) Float32(value *float32, format byte, precision int) {
 	if w.lastError == nil {
-		w.lastError = w.writer.Float32(*value)
+		w.lastError = w.writer.Float32(*value, format, precision)
 	}
 }
-func (w *WriteInspector[W]) Float64(value *float64) {
+func (w *WriteInspector[W]) Float64(value *float64, format byte, precision int) {
 	if w.lastError == nil {
-		w.lastError = w.writer.Float64(*value)
+		w.lastError = w.writer.Float64(*value, format, precision)
 	}
 }
 func (w *WriteInspector[W]) String(value *string) {
@@ -95,19 +100,19 @@ func (w *WriteInspector[W]) PropertyInt(name string, value *int, mandatory bool,
 	w.lastError = w.writer.Property(name)
 	w.Int(value)
 }
-func (w *WriteInspector[W]) PropertyFloat32(name string, value *float32, mandatory bool, description string) {
+func (w *WriteInspector[W]) PropertyFloat32(name string, value *float32, format byte, precision int, mandatory bool, description string) {
 	if w.lastError != nil {
 		return
 	}
 	w.lastError = w.writer.Property(name)
-	w.Float32(value)
+	w.Float32(value, format, precision)
 }
-func (w *WriteInspector[W]) PropertyFloat64(name string, value *float64, mandatory bool, description string) {
+func (w *WriteInspector[W]) PropertyFloat64(name string, value *float64, format byte, precision int, mandatory bool, description string) {
 	if w.lastError != nil {
 		return
 	}
 	w.lastError = w.writer.Property(name)
-	w.Float64(value)
+	w.Float64(value, format, precision)
 }
 func (w *WriteInspector[W]) PropertyString(name string, value *string, mandatory bool, description string) {
 	if w.lastError != nil {
@@ -180,6 +185,12 @@ func (w *WriteInspector[W]) EndMap() {
 }
 func (w *WriteInspector[W]) IsReading() bool {
 	return false
+}
+
+func (w *WriteInspector[W]) Flush() {
+	if w.lastError == nil {
+		w.lastError = w.writer.Flush()
+	}
 }
 
 type TextWriteInspector[W Writer] struct {

@@ -1,6 +1,9 @@
 package inspect
 
-import "strconv"
+import (
+	"io"
+	"strconv"
+)
 
 type ReadInspector[R Reader] struct {
 	reader    R
@@ -11,13 +14,15 @@ func (r *ReadInspector[R]) LastError() error {
 	return r.lastError
 }
 
-func (r *ReadInspector[R]) SetBuffer(buffer []byte) {
-	r.reader.SetBuffer(buffer)
-	r.lastError = nil
+func (r *ReadInspector[R]) SetWriter(io.Writer) {
+	if r.lastError == nil {
+		r.lastError = ErrReaderCantWrite
+	}
 }
 
-func (r *ReadInspector[R]) Buffer() []byte {
-	return r.reader.Buffer()
+func (r *ReadInspector[R]) SetReader(reader io.Reader) {
+	r.reader.SetReader(reader)
+	r.lastError = nil
 }
 
 func (r *ReadInspector[R]) Int32(value *int32) {
@@ -61,7 +66,7 @@ func (r *ReadInspector[R]) Int(value *int) {
 	}
 }
 
-func (r *ReadInspector[R]) Float32(value *float32) {
+func (r *ReadInspector[R]) Float32(value *float32, format byte, precision int) {
 	if r.lastError != nil {
 		return
 	}
@@ -72,7 +77,7 @@ func (r *ReadInspector[R]) Float32(value *float32) {
 	}
 }
 
-func (r *ReadInspector[R]) Float64(value *float64) {
+func (r *ReadInspector[R]) Float64(value *float64, format byte, precision int) {
 	if r.lastError != nil {
 		return
 	}
@@ -198,7 +203,7 @@ func (r *ReadInspector[R]) PropertyInt(name string, value *int, mandatory bool, 
 	}
 }
 
-func (r *ReadInspector[R]) PropertyFloat32(name string, value *float32, mandatory bool, description string) {
+func (r *ReadInspector[R]) PropertyFloat32(name string, value *float32, format byte, precision int, mandatory bool, description string) {
 	if r.lastError != nil {
 		return
 	}
@@ -216,7 +221,7 @@ func (r *ReadInspector[R]) PropertyFloat32(name string, value *float32, mandator
 	}
 }
 
-func (r *ReadInspector[R]) PropertyFloat64(name string, value *float64, mandatory bool, description string) {
+func (r *ReadInspector[R]) PropertyFloat64(name string, value *float64, format byte, precision int, mandatory bool, description string) {
 	if r.lastError != nil {
 		return
 	}
@@ -311,6 +316,18 @@ func (r *ReadInspector[R]) WriteArray(name string, elementName string, length in
 	if r.lastError == nil {
 		r.lastError = ErrReaderCantWrite
 	}
+}
+
+func (r *ReadInspector[R]) HaveNext() bool {
+	if r.lastError != nil {
+		return false
+	}
+	var result bool
+	result, r.lastError = r.reader.HaveNext()
+	if r.lastError != nil {
+		return false
+	}
+	return result
 }
 
 func (r *ReadInspector[R]) EndArray() {
