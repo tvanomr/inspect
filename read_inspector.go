@@ -300,7 +300,7 @@ func (r *ReadInspector[R]) EndObject() {
 	r.lastError = r.reader.EndObject()
 }
 
-func (r *ReadInspector[R]) ReadArray(name string, elementName string, description string) int {
+func (r *ReadInspector[R]) ReadArray(name string, elementName string) int {
 	if r.lastError != nil {
 		return 0
 	}

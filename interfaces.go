@@ -81,15 +81,24 @@ type InspectorInterface interface {
 	PropertyByteString(name string, value *[]byte, mandatory bool, description string)
 	PropertyValue(name string, value RawValue, mandatory bool, description string)
 	EndObject()
-	ReadArray(name string, elementName string, description string) int
+	ReadArray() int
 	WriteArray(name string, elementName string, length int, description string)
 	HaveNext() bool
 	EndArray()
-	ReadMap(name string, elementName string) int
+	ReadMap() int
 	WriteMap(name string, elementName string, length int, description string)
 	ReadNextKey() string
 	WriteNextKey(key string)
 	EndMap()
 	IsReading() bool
 	Flush()
+}
+
+type Inspectable interface {
+	Inspect(*Inspector)
+}
+
+type InspectablePtr[T any] interface {
+	Inspectable
+	*T
 }
